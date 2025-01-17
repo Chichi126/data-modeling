@@ -3,7 +3,7 @@
 
 # Developing a Robust ETL Pipeline for Property Records in Real Estate Using PostgreSQL for UrbanNest Realty
 
-![](pipeline_diagram (1).jpg)
+![](pipeline_diagrams.jpg)
 
 ## Tools and Methodology
 
