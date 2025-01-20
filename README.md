@@ -97,13 +97,15 @@ Create Fact and Dimension Tables**
   Fact Table: Links the dimensions table using their foreign keys
 
 
-![zapco_DataModel](Data_model (2) (2).jpg)
+![zapco_DataModel](Data_model.jpg)
 
 
 
 ## Dashboard Viz
 
 Connect to any of the virtualization tools (Power BI, Tableau etc) to create a simple Dashboard using any metrics of your choice
+
+Here is the link to the ![Viz](zapco_dashboard.png)
 
 
 ## Push Changes to GitHub
