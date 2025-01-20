@@ -195,7 +195,7 @@ def get_db_connection():
             host='localhost',
             port=5432,
             user='postgres',
-            password='chichi',
+            password='your password',
             database='zipco_db'
         )
         print("Database connection successful!")
