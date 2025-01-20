@@ -24,53 +24,56 @@ data = response.json()
 
 #saving the data as a file
 
-filename = 'propertyRecords.json'
+filename = 'property.json'
 
 # to write the file into the filename
 with open (filename, 'w') as file:
     json.dump(data,file, indent = 4)
 
 # to read into a dataframe
-propertyrecords_df = pd.read_json('propertyRecords.json')
+property_df = pd.read_json('property.json')
 
 
 # TRANSFORMING THE DATA 
 # Extract taxAssessment2021_Value
-propertyrecords_df['taxAssessment2021_Values'] = propertyrecords_df['taxAssessment'].apply(
-    lambda x: x['2021']['value'] if isinstance(x, dict) and '2021' in x and isinstance(x['2021'], dict) else None
+# Extract taxAssessment2021_Values
+property_df['taxAssessment2021_Values'] = property_df['taxAssessment'].apply(
+    lambda x: x.get('2021', {}).get('value') if isinstance(x, dict) else None
 )
 
 # Extract propertyTaxes2021_Total
-propertyrecords_df['propertyTaxes2021_Total'] = propertyrecords_df['propertyTaxes'].apply(
-    lambda x: x['2021']['total'] if isinstance(x, dict) and '2021' in x and isinstance(x['2021'], dict) else None
+property_df['propertyTaxes2021_Total'] = property_df['propertyTaxes'].apply(
+    lambda x: x.get('2021', {}).get('total') if isinstance(x, dict) else None
 )
 
-propertyrecords_df['taxAssessment2022_Values'] = propertyrecords_df['taxAssessment'].apply(
-    lambda x: x['2022']['value'] if isinstance(x, dict) and '2022' in x and isinstance(x['2022'], dict) else None
+# Extract taxAssessment2022_Values
+property_df['taxAssessment2022_Values'] = property_df['taxAssessment'].apply(
+    lambda x: x.get('2022', {}).get('value') if isinstance(x, dict) else None
 )
 
-# Extract propertyTaxes2021_Total
-propertyrecords_df['propertyTaxes2022_Total'] = propertyrecords_df['propertyTaxes'].apply(
-    lambda x: x['2022']['total'] if isinstance(x, dict) and '2022' in x and isinstance(x['2022'], dict) else None
+# Extract propertyTaxes2022_Total
+property_df['propertyTaxes2022_Total'] = property_df['propertyTaxes'].apply(
+    lambda x: x.get('2022', {}).get('total') if isinstance(x, dict) else None
 )
-# Safely extract taxAssessment2023_Values
-propertyrecords_df['taxAssessment2023_Values'] = propertyrecords_df['taxAssessment'].apply(
+
+# Extract taxAssessment2023_Values
+property_df['taxAssessment2023_Values'] = property_df['taxAssessment'].apply(
     lambda x: x.get('2023', {}).get('value') if isinstance(x, dict) else None
 )
 
-# Safely extract propertyTaxes2023_Total
-propertyrecords_df['propertyTaxes2023_Total'] = propertyrecords_df['propertyTaxes'].apply(
+# Extract propertyTaxes2023_Total
+property_df['propertyTaxes2023_Total'] = property_df['propertyTaxes'].apply(
     lambda x: x.get('2023', {}).get('total') if isinstance(x, dict) else None
 )
 
 # extract ownerName from owner dictionary and create a new column 
-propertyrecords_df['ownerName'] = propertyrecords_df['owner'].apply(lambda x: x['names'][0] if isinstance(x, dict) and isinstance(x['names'], list) and x['names'] else None)
+property_df['ownerName'] = property_df['owner'].apply(lambda x: x['names'][0] if isinstance(x, dict) and isinstance(x['names'], list) and x['names'] else None)
 
 
-propertyrecords_df['features'] = propertyrecords_df['features'].apply(json.dumps)
+property_df['features'] = property_df['features'].apply(json.dumps)
 
 # second approach to find and replace the nulls
-propertyrecords_df.fillna({
+property_df.fillna({
         'bedrooms': 0,
         'ownerNames':  'Unknown',
         'addressLine2': 'Not available', 
@@ -93,64 +96,68 @@ propertyrecords_df.fillna({
         'county': 'Not available'}, inplace =True)
 
 # to extract the id from the address
-propertyrecords_df['id'] = propertyrecords_df['id'].apply(lambda x: id(x))
-propertyrecords_df['lastSaleDate'] = pd.to_datetime(propertyrecords_df['lastSaleDate'], format="%Y-%m-%dT%H:%M:%S.%f%z", errors='coerce')
-propertyrecords_df= propertyrecords_df.dropna(subset=['lastSaleDate'])
+property_df['id'] = property_df['id'].apply(lambda x: id(x))
 
 #Transforming the lastSaleDate to year, month, monthName and quarter
-propertyrecords_df['year'] = propertyrecords_df['lastSaleDate'].dt.year
-propertyrecords_df['month'] = propertyrecords_df['lastSaleDate'].dt.month
-propertyrecords_df['monthName'] = propertyrecords_df['lastSaleDate'].dt.month_name()
-propertyrecords_df['quarter'] = propertyrecords_df['lastSaleDate'].dt.quarter
+property_df['lastSaleDate'] = pd.to_datetime(property_df['lastSaleDate'], format="%Y-%m-%dT%H:%M:%S.%f%z", errors='coerce')
+property_df= property_df.dropna(subset=['lastSaleDate'])
+property_df['year'] = property_df['lastSaleDate'].dt.year
+property_df['month'] = property_df['lastSaleDate'].dt.month
+property_df['monthName'] = property_df['lastSaleDate'].dt.month_name()
+property_df['quarter'] = property_df['lastSaleDate'].dt.quarter
 
 #Transforming features dataset and creating an id for the table
-features_dim = propertyrecords_df[['features', 'propertyType', 'zoning']].drop_duplicates().reset_index(drop=True)
+features_dim = property_df[['features', 'propertyType', 'zoning']].drop_duplicates().reset_index(drop=True)
 features_dim['features_id'] = features_dim.index +1
-propertyrecords_df = propertyrecords_df.merge(
+property_df = property_df.merge(
     features_dim[['features_id','features', 'propertyType', 'zoning']],  # Bring sales_id into propertyrecords_df
     on=['features', 'propertyType', 'zoning'],  # Match on shared columns
     how='left'
 )
+
+
 #Transforming legal dataset and creating an id for the table
-legal_dim = propertyrecords_df[['legalDescription', 'subdivision']].drop_duplicates().reset_index(drop=True)
+legal_dim = property_df[['legalDescription', 'subdivision']].drop_duplicates().reset_index(drop=True)
 legal_dim['legal_id'] = legal_dim.index +1
-propertyrecords_df = propertyrecords_df.merge(
+property_df = property_df.merge(
     legal_dim[['legal_id','legalDescription', 'subdivision']],  # Bring sales_id into propertyrecords_df
     on=['legalDescription', 'subdivision'],  # Match on shared columns
     how='left'
 )
-#Transforming location dataset and creating an id for the table
-location_dim = propertyrecords_df[['county','zipCode','formattedAddress','state','city']].drop_duplicates().reset_index(drop=True)
-location_dim['location_id'] = location_dim.index +1
 
-propertyrecords_df = propertyrecords_df.merge(
+
+#Transforming location dataset and creating an id for the table
+location_dim = property_df[['county','zipCode','formattedAddress','state','city']].drop_duplicates().reset_index(drop=True)
+location_dim['location_id'] = location_dim.index +1
+property_df = property_df.merge(
     location_dim[['location_id','county','zipCode','formattedAddress','state','city']],  # Bring sales_id into propertyrecords_df
     on=['county','zipCode','formattedAddress','state','city'],  # Match on shared columns
     how='left'
 )
 
+
 #Transforming features dataset and creating an id for the table
-date_dim = propertyrecords_df[['lastSaleDate', 'year', 'month',	'monthName', 'quarter']].drop_duplicates().reset_index(drop=True)
+date_dim = property_df[['lastSaleDate', 'year', 'month',	'monthName', 'quarter']].drop_duplicates().reset_index(drop=True)
 date_dim['date_id'] = date_dim.index +1
 
-propertyrecords_df = propertyrecords_df.merge(
+property_df = property_df.merge(
     date_dim[['date_id','lastSaleDate', 'year', 'month',	'monthName', 'quarter']],  # Bring sales_id into propertyrecords_df
     on=['lastSaleDate', 'year', 'month',	'monthName', 'quarter'],  # Match on shared columns
-    how='right'
+    how='left'
 )
 
 #Transforming owner dataset and creating an id for the table
-owner_dim = propertyrecords_df[['ownerName','ownerOccupied']].drop_duplicates().reset_index(drop=True)
+owner_dim = property_df[['ownerName','ownerOccupied']].drop_duplicates().reset_index(drop=True)
 owner_dim['owner_id'] = owner_dim.index +1
 # Merge features_dim into propertyrecords_df
-propertyrecords_df = propertyrecords_df.merge(
+property_df = property_df.merge(
     owner_dim[['owner_id','ownerName','ownerOccupied']],  # Use 'feature_id' consistently
     on=['ownerName','ownerOccupied'],  # Match on shared columns
     how='left'
 )
 
 # creating the fact table 
-fact_table = propertyrecords_df[['id', 'date_id','owner_id', 'features_id', 'location_id', 'bedrooms', 'squareFootage', 'taxAssessment2021_Values','propertyTaxes2021_Total',
+fact_table = property_df[['id', 'date_id','owner_id', 'features_id', 'location_id', 'bedrooms', 'squareFootage', 'taxAssessment2021_Values','propertyTaxes2021_Total',
                 'taxAssessment2022_Values','propertyTaxes2022_Total', 'taxAssessment2023_Values', 'propertyTaxes2023_Total','bathrooms', 'lotSize', 'lastSalePrice', 'longitude', 'latitude']]
 
 
