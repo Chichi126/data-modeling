@@ -105,7 +105,7 @@ Create Fact and Dimension Tables**
 
 Connect to any of the virtualization tools (Power BI, Tableau etc) to create a simple Dashboard using any metrics of your choice
 
-Here is the link to the ![Viz](zapco_dashboard.png)
+Here ![](zapco_dashboard.png)
 
 
 ## Push Changes to GitHub
