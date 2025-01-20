@@ -73,7 +73,7 @@ Create a PostgreSQL connection using psycopg2.**
 Create Fact and Dimension Tables**
 
 
-## Here is the link to see python codes and workings ![here](main.py)
+## Here is the link to see python codes and workings ![here](script.py)
 
 
 ## Data Modeling
@@ -97,7 +97,7 @@ Create Fact and Dimension Tables**
   Fact Table: Links the dimensions table using their foreign keys
 
 
-![zapco_DataModel](https://github.com/Chichi126/Postgresql_etl/blob/d463e0532a4efebdd8369e2ed886d13e151541a4/Data_model%20(2).jpg)
+![zapco_DataModel](Data_model (2) (2).jpg)
 
 
 
